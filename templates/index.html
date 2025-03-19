@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Machine</title>
+    <style>
+        body {
+            background-color: brown;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 2px solid white;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background: orange;
+            border: none;
+            color: black;
+            border-radius: 5px;
+        }
+        input, select {
+            padding: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to the Coffee Machine ☕</h1>
+    <div class="container">
+        <h2>Select Your Coffee</h2>
+        <select id="coffeeType">
+            <option value="latte">Latte - Ksh 250</option>
+            <option value="espresso">Espresso - Ksh 200</option>
+            <option value="cappuccino">Cappuccino - Ksh 300</option>
+        </select>
+
+        <h3>Enter Payment (Ksh)</h3>
+        <input type="number" id="amountPaid" placeholder="Enter amount" />
+
+        <button onclick="orderCoffee()">Order Now</button>
+
+        <h3 id="orderStatus"></h3>
+        <h4 id="changeAmount"></h4>
+
+        <h2>Payment Report</h2>
+        <button onclick="getOrders()">View Payment Report</button>
+        <div id="orderHistory"></div>
+
+        <h2>Resources Report</h2>
+        <button onclick="getReport()">View Resource Report</button>
+        <div id="resourceReport"></div>
+    </div>
+
+    <script>
+        async function orderCoffee() {
+            let coffeeType = document.getElementById("coffeeType").value;
+            let amountPaid = parseInt(document.getElementById("amountPaid").value);
+
+            let response = await fetch('/order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({coffee_type: coffeeType, amount_paid: amountPaid})
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                document.getElementById("orderStatus").innerText = result.message;
+                document.getElementById("changeAmount").innerText = "Your change: Ksh " + result.change;
+            } else {
+                document.getElementById("orderStatus").innerText = result.error;
+                document.getElementById("changeAmount").innerText = "";
+            }
+        }
+
+        async function getOrders() {
+            let response = await fetch('/orders');
+            let orders = await response.json();
+
+            let output = "<h3>Order History</h3><ul>";
+            orders.forEach(order => {
+                output += `<li>${order.id}: ${order.coffee_type} - Paid: Ksh ${order.amount_paid}, Change: Ksh ${order.change_given}</li>`;
+            });
+            output += "</ul>";
+
+            document.getElementById("orderHistory").innerHTML = output;
+        }
+
+        async function getReport() {
+            let response = await fetch('/report');
+            let report = await response.json();
+
+            document.getElementById("resourceReport").innerHTML = `
+                <h3>Resource Report</h3>
+                Water: ${report.water}ml<br>
+                Milk: ${report.milk}ml<br>
+                Coffee: ${report.coffee}g<br>
+                Profit: Ksh ${report.profit}
+            `;
+        }
+    </script>
+
+</body>
+</html>
