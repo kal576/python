@@ -9,6 +9,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+def init_db(app):
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+
 # Define Coffee Order Model
 class CoffeeOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
